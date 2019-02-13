@@ -1,31 +1,32 @@
 """
 Factory function for creating netdev classes
 """
-from .arista import AristaEOS
-from .cisco import CiscoASA
-from .cisco import CiscoIOS
-from .cisco import CiscoIOSXR
-from .cisco import CiscoNXOS
-from .fujitsu import FujitsuSwitch
-from .hp import HPComware
-from .hp import HPComwareLimited
-from .juniper import JuniperJunOS
-from .mikrotik import MikrotikRouterOS
+from netdev.vendors import AristaEOS
+from netdev.vendors import ArubaAOS6, ArubaAOS8
+from netdev.vendors import CiscoASA, CiscoIOS, CiscoIOSXR, CiscoNXOS
+from netdev.vendors import FujitsuSwitch
+from netdev.vendors import HPComware, HPComwareLimited
+from netdev.vendors import JuniperJunOS
+from netdev.vendors import MikrotikRouterOS
+from netdev.vendors import Terminal
 
 # @formatter:off
 # The keys of this dictionary are the supported device_types
 CLASS_MAPPER = {
+    'arista_eos': AristaEOS,
+    'aruba_aos_6': ArubaAOS6,
+    'aruba_aos_8': ArubaAOS8,
+    'cisco_asa': CiscoASA,
     'cisco_ios': CiscoIOS,
     'cisco_ios_xe': CiscoIOS,
     'cisco_ios_xr': CiscoIOSXR,
-    'cisco_asa': CiscoASA,
     'cisco_nxos': CiscoNXOS,
+    'fujitsu_switch': FujitsuSwitch,
     'hp_comware': HPComware,
     'hp_comware_limited': HPComwareLimited,
-    'fujitsu_switch': FujitsuSwitch,
-    'mikrotik_routeros': MikrotikRouterOS,
-    'arista_eos': AristaEOS,
     'juniper_junos': JuniperJunOS,
+    'mikrotik_routeros': MikrotikRouterOS,
+    'terminal': Terminal,
 }
 
 # @formatter:on

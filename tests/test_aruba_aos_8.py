@@ -10,14 +10,14 @@ logging.basicConfig(filename='unittest.log', level=logging.DEBUG)
 config_path = 'config.yaml'
 
 
-class TestComware(unittest.TestCase):
+class TestAOS8(unittest.TestCase):
     @staticmethod
     def load_credits():
         with open(config_path, 'r') as conf:
             config = yaml.load(conf)
             with open(config['device_list'], 'r') as devs:
                 devices = yaml.load(devs)
-                params = [p for p in devices if p['device_type'] == 'hp_comware']
+                params = [p for p in devices if p['device_type'] == 'aruba_aos_8']
                 return params
 
     def setUp(self):
@@ -27,22 +27,22 @@ class TestComware(unittest.TestCase):
         self.devices = self.load_credits()
         self.assertFalse(len(self.devices) == 0)
 
-    def test_show_sysname(self):
+    def test_show_run_hostname(self):
         async def task():
             for dev in self.devices:
-                async with netdev.create(**dev) as hp:
-                    out = await hp.send_command('display cur | i sysname')
-                    self.assertIn("sysname", out)
+                async with netdev.create(**dev) as aos:
+                    out = await aos.send_command('show run | i hostname')
+                    self.assertIn("hostname", out)
 
         self.loop.run_until_complete(task())
 
     def test_show_several_commands(self):
         async def task():
             for dev in self.devices:
-                async with netdev.create(**dev) as hp:
-                    commands = ["dir", "display ver", "display cur", "display ssh server status"]
+                async with netdev.create(**dev) as aos:
+                    commands = ["dir", "show ver", "show run", "show ssh"]
                     for cmd in commands:
-                        out = await hp.send_command(cmd, strip_command=False)
+                        out = await aos.send_command(cmd, strip_command=False)
                         self.assertIn(cmd, out)
 
         self.loop.run_until_complete(task())
@@ -50,20 +50,20 @@ class TestComware(unittest.TestCase):
     def test_config_set(self):
         async def task():
             for dev in self.devices:
-                async with netdev.create(**dev) as hp:
-                    commands = ["vlan 1", "quit"]
-                    out = await hp.send_config_set(commands)
-                    self.assertIn("vlan 1", out)
-                    self.assertIn("quit", out)
+                async with netdev.create(**dev) as aos:
+                    commands = ["interface loopback", "exit"]
+                    out = await aos.send_config_set(commands)
+                    self.assertIn("loopback", out)
+                    self.assertIn("exit", out)
 
         self.loop.run_until_complete(task())
 
     def test_base_prompt(self):
         async def task():
             for dev in self.devices:
-                async with netdev.create(**dev) as hp:
-                    out = await hp.send_command('display cur | i sysname')
-                    self.assertIn(hp.base_prompt, out)
+                async with netdev.create(**dev) as aos:
+                    out = await aos.send_command('sh run | i hostname')
+                    self.assertIn(aos.base_prompt, out)
 
         self.loop.run_until_complete(task())
 
@@ -71,7 +71,7 @@ class TestComware(unittest.TestCase):
         async def task():
             for dev in self.devices:
                 with self.assertRaises(netdev.TimeoutError):
-                    async with netdev.create(**dev, timeout=0.1) as hp:
-                        await hp.send_command('display cur | i sysname')
+                    async with netdev.create(**dev, timeout=0.1) as aos:
+                        await aos.send_command('sh run | i hostname')
 
         self.loop.run_until_complete(task())

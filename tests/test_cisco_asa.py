@@ -36,6 +36,15 @@ class TestASA(unittest.TestCase):
 
         self.loop.run_until_complete(task())
 
+    def test_timeout(self):
+        async def task():
+            for dev in self.devices:
+                with self.assertRaises(netdev.TimeoutError):
+                    async with netdev.create(**dev, timeout=0.1) as asa:
+                        await asa.send_command('show run | i hostname')
+
+        self.loop.run_until_complete(task())
+
     def test_show_several_commands(self):
         async def task():
             for dev in self.devices:
@@ -55,23 +64,6 @@ class TestASA(unittest.TestCase):
                     out = await asa.send_config_set(commands)
                     self.assertIn("interface Management0/0", out)
                     self.assertIn("exit", out)
-
-        self.loop.run_until_complete(task())
-
-    def test_current_context(self):
-        async def task():
-            for dev in self.devices:
-                async with netdev.create(**dev) as asa:
-                    if asa.multiple_mode:
-                        await asa.send_command('changeto system')
-                        self.assertIn('system', asa.current_context)
-                        out = await asa.send_command('sh run | i ^context')
-                        contexts = out.splitlines()
-                        for ctx in contexts:
-                            out = await asa.send_command('changeto {}'.format(ctx))
-                            self.assertIn(ctx.split()[1], asa.current_context)
-                    else:
-                        self.assertIn('system', asa.current_context)
 
         self.loop.run_until_complete(task())
 
